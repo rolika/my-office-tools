@@ -1,1 +1,1 @@
-This is placeholder file for git to follow this folder.
+This is placeholder file for git to recognize this folder.

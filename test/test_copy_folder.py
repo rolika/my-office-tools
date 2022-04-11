@@ -6,10 +6,14 @@ from code import create_new_project_folder
 
 class TestCopyFolder:
 
+    def setup_method(self):
+        self._fromfolder = pathlib.Path(__file__).parent.absolute()
+        self._tofolder = pathlib.Path(__file__).parent.absolute()
+
     def test_copy_folder(self):
         """Test the copy mechanism of an existing sample folder"""
         # Create a new project folder
-        project_folder = create_new_project_folder()
+        project_folder = create_new_project_folder(self._fromfolder, self._tofolder)
         # Copy the sample folder
         shutil.copytree(
             str(pathlib.Path(__file__).parent.absolute()) + "/sample_folder",
@@ -32,4 +36,6 @@ class TestCopyFolder:
         assert project_folder.joinpath("sample_folder").joinpath("file5.txt").is_file()
         assert project_folder.joinpath("sample_folder").joinpath("file6.txt").exists()
         assert project_folder.joinpath("sample_folder").joinpath("file6.txt").is_file()
-        assert project_folder.joinpath("sample_folder").joinpath("file7.txt").exists()
+    
+    def teardown_method(self):
+        pass
