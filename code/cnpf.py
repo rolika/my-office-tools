@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import configparser
+import json
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
@@ -10,11 +11,13 @@ def create_new_project_folder(**kwargs):
     """Create a new project folder.
     Calling without arguments the default config file in the data folder is used.
     Specifying source, destination and name will override the config file.
-    Known keywords:
+    Specifying a json file, a destination folder must be specified as well.
+    Known keywords - provided by the caller with values as strings:
         src:    source folder
         dst:    destination folder
         name:   name of the new project folder
         cfg:    config file
+        jsn:    json file
     """
 
     # parse the config file - default values
