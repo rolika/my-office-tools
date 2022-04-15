@@ -5,6 +5,7 @@ from code import cnpf
 
 
 class TestCopyFolder(unittest.TestCase):
+    """Test copying of an existing project folder."""
 
     def test_copy_folder(self):
         """Test the copy mechanism of an existing sample folder"""
