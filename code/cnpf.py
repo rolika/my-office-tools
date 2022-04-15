@@ -12,12 +12,13 @@ def create_new_project_folder(**kwargs):
     Calling without arguments the default config file in the data folder is used.
     Specifying source, destination and name will override the config file.
     Specifying a json file, a destination folder must be specified as well.
+    Inside the json file, {dicts} are folders, and list [files] under the key "__files__".
     Known keywords - provided by the caller with values as strings:
         src:    source folder
         dst:    destination folder
         name:   name of the new project folder
         cfg:    config file
-        jsn:    json file
+        jsn:    json file    
     """
 
     # parse the config file - default values

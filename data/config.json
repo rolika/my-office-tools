@@ -1,0 +1,16 @@
+{
+    "code": {
+        "modul": {
+            "__files__": [
+                "test/sampleproject/src/sample/simple.py",
+                "test/sampleproject/src/sample/package_data.dat"
+            ]            
+        }
+    },
+    "data": {},
+    "test": {},
+    "__files__": [
+        "test/sampleproject/LICENSE.txt",
+        "test/sampleproject/README.md"
+    ]
+}
