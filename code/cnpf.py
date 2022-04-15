@@ -7,7 +7,15 @@ DEFAULT_CONFIG_FILE = "data/config.ini"
 
 
 def create_new_project_folder(**kwargs):
-    """Create a new project folder"""
+    """Create a new project folder.
+    Calling without arguments the default config file in the data folder is used.
+    Specifying source, destination and name will override the config file.
+    Known keywords:
+        src:    source folder
+        dst:    destination folder
+        name:   name of the new project folder
+        cfg:    config file
+    """
 
     # parse the config file - default values
     cfg = kwargs.pop("cfg", DEFAULT_CONFIG_FILE)
@@ -15,7 +23,7 @@ def create_new_project_folder(**kwargs):
     config.read(cfg)  # this is empty if the config file does not exist
     cfg_src = config.get("path", "src", fallback=None)
     cfg_dst = config.get("path", "dst", fallback=None)
-    
+
     # parse the kwargs and overwrite default values if necessary
     src = kwargs.pop("src", cfg_src)
     dst = kwargs.pop("dst", cfg_dst)
