@@ -9,8 +9,11 @@ class TestCreateFolder(unittest.TestCase):
 
     def test_create_folder(self):
         """Test creating a project folder."""
-        self._project_folder = cnpf.create_new_project_folder(jsn="data/project_folder.json")
-        self.assertTrue(pathlib.Path("test", "projects", "new_project").exists(), "Folder not copied")
+        self._project_folder = cnpf.create_new_project_folder(crt="data/create.txt")
+        self.assertTrue(pathlib.Path("test", "projects", "sampleproject").exists(), "Folder not copied")
+        self.assertTrue(pathlib.Path("test", "projects", "sampleproject", "test").exists(), "Folder not copied")
+        self.assertTrue(pathlib.Path("test", "projects", "sampleproject", "code", "sample", "simple.py").exists(), "File not copied")
+        self.assertTrue(pathlib.Path("test", "projects", "sampleproject", "README.md").exists(), "File not copied")
 
     def tearDown(self):
         shutil.rmtree(self._project_folder)

@@ -1,7 +1,8 @@
+from importlib.metadata import files
 import pathlib
 import shutil
 import configparser
-import json
+import tempfile
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
@@ -11,14 +12,16 @@ def create_new_project_folder(**kwargs):
     """Create a new project folder.
     Calling without arguments the default config file in the data folder is used.
     Specifying source, destination and name will override the config file.
-    Specifying a json file, a destination folder must be specified as well.
-    Inside the json file, {dicts} are folders, and list [files] under the key "__files__".
     Known keywords - provided by the caller with values as strings:
         src:    source folder
         dst:    destination folder
         name:   name of the new project folder
         cfg:    config file
-        jsn:    json file    
+        crt:    txt file holding the folder structure to be created
+    The create.txt is layed out as follows:
+        - names before a colon (:) are treated as folder names
+        - names after a colon (:) are treated as file names, separated by a space ( )
+        A colon with no name before it is treated as the root folder.
     """
 
     # parse the config file - default values
@@ -31,6 +34,21 @@ def create_new_project_folder(**kwargs):
     # parse the kwargs and overwrite default values if necessary
     src = kwargs.pop("src", cfg_src)
     dst = kwargs.pop("dst", cfg_dst)
+
+    # parse the create file if present and overwrite previous values if necessary
+    crt = kwargs.pop("crt", None)
+    if crt:
+        with open(crt, "r") as f:
+            lines = f.readlines()
+        tmpdir = tempfile.mkdtemp()
+        for line in lines:
+            folder, files = line.split(":", 1)
+            folder = pathlib.Path(tmpdir, folder.strip())
+            folder.mkdir(parents=True, exist_ok=True)
+            for file in files.split():
+                file = pathlib.Path(file.strip())
+                shutil.copyfile(file, folder / file.name)
+        src = tmpdir
 
     if not src:
         raise ValueError("source folder is required")

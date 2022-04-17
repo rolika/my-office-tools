@@ -1,0 +1,6 @@
+: test/sampleproject/LICENSE.txt test/sampleproject/README.md
+code:
+data:
+test:
+code/sample: test/sampleproject/src/sample/simple.py
+test/case:
