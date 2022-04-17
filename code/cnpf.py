@@ -86,7 +86,7 @@ def create_new_project_folder(**kwargs):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Create a new project folder.")
     parser.add_argument("--src", help="source folder")
     parser.add_argument("--dst", help="destination folder")
     parser.add_argument("--name", help="name of the new project folder")
