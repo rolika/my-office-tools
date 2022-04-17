@@ -1,4 +1,3 @@
-from importlib.metadata import files
 import pathlib
 import shutil
 import configparser
