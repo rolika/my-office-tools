@@ -55,10 +55,9 @@ def create_new_project_folder(**kwargs):
             for file in files.split():
                 file = pathlib.Path(file.strip())
                 if file.is_file():
-                    shutil.copy(file, folder)
+                    shutil.copyfile(file, folder / file.name)
                 else:
-                    raise FileNotFoundError(f"File not found: {file}")
-                shutil.copyfile(file, folder / file.name)
+                    raise FileNotFoundError(f"File not found: {file}")                
         src = tmpdir
 
     if not src:
