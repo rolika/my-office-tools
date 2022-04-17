@@ -19,8 +19,9 @@ def create_new_project_folder(**kwargs):
         crt:    txt file holding the folder structure to be created
     The create.txt is layed out as follows:
         - names before a colon (:) are treated as folder names
-        - names after a colon (:) are treated as file names, separated by a space ( )
+        - names after a colon (:) are treated as file names, separated by spaces
         A colon with no name before it is treated as the root folder.
+    If the config file contains a folder create structure, it is used by default.
     """
 
     # parse the config file - default values
@@ -29,13 +30,14 @@ def create_new_project_folder(**kwargs):
     config.read(cfg)  # this is empty if the config file does not exist
     cfg_src = config.get("path", "src", fallback=None)
     cfg_dst = config.get("path", "dst", fallback=None)
+    cfg_crt = config.get("path", "crt", fallback=None)
 
     # parse the kwargs and overwrite default values if necessary
     src = kwargs.pop("src", cfg_src)
     dst = kwargs.pop("dst", cfg_dst)
+    crt = kwargs.pop("crt", cfg_crt)
 
     # parse the create file if present and overwrite previous values if necessary
-    crt = kwargs.pop("crt", None)
     if crt:
         with open(crt, "r") as f:
             lines = f.readlines()
