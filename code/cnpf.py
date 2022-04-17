@@ -2,6 +2,7 @@ import pathlib
 import shutil
 import configparser
 import tempfile
+import argparse
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
@@ -21,7 +22,7 @@ def create_new_project_folder(**kwargs):
         - names before a colon (:) are treated as folder names
         - names after a colon (:) are treated as file names, separated by spaces
         A colon with no name before it is treated as the root folder.
-    If the config file contains a folder create structure, it is used by default.
+    If the config file contains a reference to a folder create structure, it is used by default.
     """
 
     # parse the config file - default values
@@ -44,7 +45,7 @@ def create_new_project_folder(**kwargs):
                 lines = f.readlines()
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {crt}")
-        
+
         # create a temporary folder to leave the rest of the code logic unchanged
         tmpdir = tempfile.mkdtemp()
         for line in lines:
@@ -85,4 +86,11 @@ def create_new_project_folder(**kwargs):
 
 
 if __name__ == "__main__":
-    pass
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--src", help="source folder")
+    parser.add_argument("--dst", help="destination folder")
+    parser.add_argument("--name", help="name of the new project folder")
+    parser.add_argument("--cfg", help="config file")
+    parser.add_argument("--crt", help="folder create file")
+    args = {k: v for k, v in vars(parser.parse_args()).items() if v}
+    create_new_project_folder(**args)
