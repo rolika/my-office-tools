@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import configparser
+import tempfile
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
@@ -10,11 +11,17 @@ def create_new_project_folder(**kwargs):
     """Create a new project folder.
     Calling without arguments the default config file in the data folder is used.
     Specifying source, destination and name will override the config file.
-    Known keywords:
+    Known keywords - provided by the caller with values as strings:
         src:    source folder
         dst:    destination folder
         name:   name of the new project folder
         cfg:    config file
+        crt:    txt file holding the folder structure to be created
+    The create.txt is layed out as follows:
+        - names before a colon (:) are treated as folder names
+        - names after a colon (:) are treated as file names, separated by spaces
+        A colon with no name before it is treated as the root folder.
+    If the config file contains a folder create structure, it is used by default.
     """
 
     # parse the config file - default values
@@ -23,10 +30,26 @@ def create_new_project_folder(**kwargs):
     config.read(cfg)  # this is empty if the config file does not exist
     cfg_src = config.get("path", "src", fallback=None)
     cfg_dst = config.get("path", "dst", fallback=None)
+    cfg_crt = config.get("path", "crt", fallback=None)
 
     # parse the kwargs and overwrite default values if necessary
     src = kwargs.pop("src", cfg_src)
     dst = kwargs.pop("dst", cfg_dst)
+    crt = kwargs.pop("crt", cfg_crt)
+
+    # parse the create file if present and overwrite previous values if necessary
+    if crt:
+        with open(crt, "r") as f:
+            lines = f.readlines()
+        tmpdir = tempfile.mkdtemp()
+        for line in lines:
+            folder, files = line.split(":", 1)
+            folder = pathlib.Path(tmpdir, folder.strip())
+            folder.mkdir(parents=True, exist_ok=True)
+            for file in files.split():
+                file = pathlib.Path(file.strip())
+                shutil.copyfile(file, folder / file.name)
+        src = tmpdir
 
     if not src:
         raise ValueError("source folder is required")
