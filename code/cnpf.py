@@ -76,7 +76,7 @@ def create_new_project_folder(**kwargs):
         if dst.exists() and dst.is_dir():
             dst = dst / name
         if dst.exists():
-            raise ValueError("target folder already exists")
+            raise ValueError("destination folder already exists")
 
         shutil.copytree(src, dst)
         return dst
