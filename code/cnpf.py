@@ -39,8 +39,11 @@ def create_new_project_folder(**kwargs):
 
     # parse the create file if present and overwrite previous values if necessary
     if crt:
-        with open(crt, "r") as f:
-            lines = f.readlines()
+        try:
+            with open(crt, "r") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {crt}")
         tmpdir = tempfile.mkdtemp()
         for line in lines:
             folder, files = line.split(":", 1)
@@ -48,6 +51,10 @@ def create_new_project_folder(**kwargs):
             folder.mkdir(parents=True, exist_ok=True)
             for file in files.split():
                 file = pathlib.Path(file.strip())
+                if file.is_file():
+                    shutil.copy(file, folder)
+                else:
+                    raise FileNotFoundError(f"File not found: {file}")
                 shutil.copyfile(file, folder / file.name)
         src = tmpdir
 
