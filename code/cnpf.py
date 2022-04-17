@@ -44,6 +44,8 @@ def create_new_project_folder(**kwargs):
                 lines = f.readlines()
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {crt}")
+        
+        # create a temporary folder to leave the rest of the code logic unchanged
         tmpdir = tempfile.mkdtemp()
         for line in lines:
             folder, files = line.split(":", 1)
