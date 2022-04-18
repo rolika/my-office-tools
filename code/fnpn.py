@@ -1,7 +1,7 @@
 """
 The projects are listed in a LibreOffice Calc spreadsheet, in multiple sheets which are named after the current
 year, like 2022. Sheets have some header rows, mostly 7, so projects start in row 8.
-But this can be changed anytime, so the function has to look up for the project number pattern:
+But this can be changed anytime, so the function has to look up for the  first project number pattern in column A:
 Project numbers are in the A-column, start with two-digit years, separated with a slash '/', followed by the
 actual project number starting with 1: yy/n or yy/nn or yy/nnn.
 Project numbers are predefined in column A, mostly at least until 500, but it cannot be assumed for sure.
@@ -14,6 +14,7 @@ import shlex
 import configparser
 import pathlib
 import pyoo
+import datetime
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
@@ -27,13 +28,14 @@ def fetch_next_project_number(**kwargs) -> str:
     Known keywords - provided by the caller with values as strings:
         cfg:    config file
         sht:    path to the projectsheet - providing it will override the config file
+        year:   year 'yyyy' - providing it will override the use of the current year
     
-    Raises:     FileNotFoundError if the config file or the project sheet is not found
+    Raises:     FileNotFoundError if the the project sheet is not found
     
     Returns:    project number in yy/nnn format as a string"""
 
     # saddle the workhorse
-    sub = subprocess.Popen(shlex.split(SOFFICE_COMMAND_LINE))
+    subprocess.run(shlex.split(SOFFICE_COMMAND_LINE))
     session = pyoo.Desktop(pipe="wrk")
     
     # parse the config file - default values
@@ -42,17 +44,28 @@ def fetch_next_project_number(**kwargs) -> str:
     config.read(cfg)  # this is empty if the config file does not exist
     cfg_sht = config.get("path", "sht", fallback=None)
 
+    # get current calendar year
+    current_year = str(datetime.datetime.now().year)  # should be a string
+
     # parse the kwargs and overwrite default values if necessary
     sht = kwargs.pop("sht", cfg_sht)
+    year = kwargs.pop("year", current_year)
+    year = year[:4]  # only the first four digits are used
 
     sht = pathlib.Path(sht)
 
     if sht.exists() and sht.is_file():
-        # open the project sheet
         doc = session.open_spreadsheet(sht)
-        doc.close()
+
+        # make sure the sheet exists
+        try:
+            sheet = doc.sheets[year]
+        except KeyError:
+            doc.close()
+            raise ValueError(f"sheet not found: {year}")
+        
     else:
-        raise FileNotFoundError(f"File not found: {sht}")
+        raise FileNotFoundError(f"file not found: {sht}")
 
 
 if __name__ == "__main__":
