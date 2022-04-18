@@ -1,10 +1,9 @@
 """
 The projects are listed in a LibreOffice Calc spreadsheet, in multiple sheets which are named after the current
 year, like 2022. Sheets have some header rows, mostly 7, so projects start in row 8.
-But this can be changed anytime, so the function has to look up for the  first project number pattern in column A:
 Project numbers are in the A-column, start with two-digit years, separated with a slash '/', followed by the
 actual project number starting with 1: yy/n or yy/nn or yy/nnn.
-Project numbers are predefined in column A, mostly at least until 500, but it cannot be assumed for sure.
+Project numbers are predefined in column A, mostly at least until 500, this is done manually.
 Not taken project numbers have an empty cell in column B next to them.
 """
 
@@ -32,12 +31,13 @@ def fetch_next_project_number(**kwargs) -> str:
         sht:    path to the projectsheet - providing it will override the config file
         year:   year 'yyyy' - providing it will override the use of the current year
 
-    Raises:     FileNotFoundError if the the project sheet is not found
+    Raises:     FileNotFoundError if the the project spreadsheet is not found
+                ValueError if the sheet is not found
 
     Returns:    project number in yy/nnn format as a string"""
 
     # saddle the workhorse
-    subprocess.run(shlex.split(SOFFICE_COMMAND_LINE))
+    lo = subprocess.Popen(shlex.split(SOFFICE_COMMAND_LINE))
     session = pyoo.Desktop(pipe="wrk")
 
     # parse the config file - default values
@@ -66,17 +66,25 @@ def fetch_next_project_number(**kwargs) -> str:
         try:
             sheet = doc.sheets[year]
         except KeyError:
-            doc.close()
+            _cleanup(lo, doc)
             raise ValueError(f"sheet not found: {year}")
 
         # sheet ok, find the next empty project cell
         row = _find_next_empty_cell(sheet, start_row, project_col)
         mo = RE_PROJECT_NUMBER.search(sheet[row, projectnum_col].value)
         if mo:  # there is valid project number in the cell
-            doc.close()
+            _cleanup(lo, doc)
             return mo.group()
     else:
+        _cleanup(lo)
         raise FileNotFoundError(f"file not found: {sht}")
+
+
+def _cleanup(lo:subprocess.Popen, doc:pyoo.SpreadsheetDocument=None):
+    """Close the LibreOffice session."""
+    if doc:
+        doc.close()
+    lo.kill()
 
 
 def _find_next_empty_cell(sheet:pyoo.Sheet, row:int, col:int) -> tuple:
