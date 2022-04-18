@@ -8,7 +8,7 @@ import argparse
 DEFAULT_CONFIG_FILE = "data/config.ini"
 
 
-def create_new_project_folder(**kwargs):
+def create_new_project_folder(**kwargs) -> pathlib.Path:
     """Create a new project folder.
     Calling without arguments the default config file in the data folder is used.
     Specifying source, destination and name will override the config file.
@@ -23,6 +23,11 @@ def create_new_project_folder(**kwargs):
         - names after a colon (:) are treated as file names, separated by spaces
         A colon with no name before it is treated as the root folder.
     If the config file contains a reference to a folder create structure, it is used by default.
+
+    Raises:     FileNotFoundError if the config or create file is not found
+                ValueError if the source or destination folder does not exist
+
+    Returns:    the path of the new project folder.
     """
 
     # parse the config file - default values
