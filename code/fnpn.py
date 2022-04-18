@@ -15,10 +15,12 @@ import configparser
 import pathlib
 import pyoo
 import datetime
+import re
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
 SOFFICE_COMMAND_LINE = """soffice --accept="pipe,name=wrk;urp;" --norestore --nologo --nodefault --headless"""
+RE_PROJECT_NUMBER = re.compile(r"^\d{2}/\d{1,3}$")  # yy/n or yy/nn or yy/nnn
 
 
 def fetch_next_project_number(**kwargs) -> str:
@@ -29,20 +31,23 @@ def fetch_next_project_number(**kwargs) -> str:
         cfg:    config file
         sht:    path to the projectsheet - providing it will override the config file
         year:   year 'yyyy' - providing it will override the use of the current year
-    
+
     Raises:     FileNotFoundError if the the project sheet is not found
-    
+
     Returns:    project number in yy/nnn format as a string"""
 
     # saddle the workhorse
     subprocess.run(shlex.split(SOFFICE_COMMAND_LINE))
     session = pyoo.Desktop(pipe="wrk")
-    
+
     # parse the config file - default values
     cfg = kwargs.pop("cfg", DEFAULT_CONFIG_FILE)
     config = configparser.ConfigParser()
     config.read(cfg)  # this is empty if the config file does not exist
     cfg_sht = config.get("path", "sht", fallback=None)
+    projectnum_col = config.getint("path", "projectnum_col", fallback=0)
+    project_col = config.getint("path", "project_col", fallback=1)
+    start_row = config.getint("path", "start_row", fallback=7)
 
     # get current calendar year
     current_year = str(datetime.datetime.now().year)  # should be a string
@@ -63,9 +68,31 @@ def fetch_next_project_number(**kwargs) -> str:
         except KeyError:
             doc.close()
             raise ValueError(f"sheet not found: {year}")
-        
+
+        # sheet ok, find the next empty project cell
+        row = _find_next_empty_cell(sheet, start_row, project_col)
+        mo = RE_PROJECT_NUMBER.search(sheet[row, projectnum_col].value)
+        if mo:  # there is valid project number in the cell
+            doc.close()
+            return mo.group()
     else:
         raise FileNotFoundError(f"file not found: {sht}")
+
+
+def _find_next_empty_cell(sheet:pyoo.Sheet, row:int, col:int) -> tuple:
+    """Find the next empty cell in the column.
+    The cell is returned as a tuple (row, column)
+
+    Args:       sheet:  the sheet to search in
+                row:    the row to start searching from
+                col:    the column to search in
+
+    Returns:    row"""
+
+    while True:
+        if sheet[row, col].value == "":
+            return row
+        row += 1
 
 
 if __name__ == "__main__":
