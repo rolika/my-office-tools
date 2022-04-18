@@ -18,7 +18,7 @@ import re
 
 
 DEFAULT_CONFIG_FILE = "data/config.ini"
-SOFFICE_COMMAND_LINE = """soffice --accept="pipe,name=wrk;urp;" --norestore --nologo --nodefault --headless"""
+SOFFICE_COMMAND_LINE = """soffice --accept="socket,host=localhost,port=2002;urp;" --norestore --nologo --nodefault --headless"""
 RE_PROJECT_NUMBER = re.compile(r"^\d{2}/\d{1,3}$")  # yy/n or yy/nn or yy/nnn
 
 
@@ -37,8 +37,8 @@ def fetch_next_project_number(**kwargs) -> str:
     Returns:    project number in yy/nnn format as a string"""
 
     # saddle the workhorse
-    lo = subprocess.Popen(shlex.split(SOFFICE_COMMAND_LINE))
-    session = pyoo.Desktop(pipe="wrk")
+    subprocess.run(shlex.split(SOFFICE_COMMAND_LINE), timeout=10)
+    session = pyoo.Desktop()
 
     # parse the config file - default values
     cfg = kwargs.pop("cfg", DEFAULT_CONFIG_FILE)
@@ -66,25 +66,17 @@ def fetch_next_project_number(**kwargs) -> str:
         try:
             sheet = doc.sheets[year]
         except KeyError:
-            _cleanup(lo, doc)
+            doc.close()
             raise ValueError(f"sheet not found: {year}")
 
         # sheet ok, find the next empty project cell
         row = _find_next_empty_cell(sheet, start_row, project_col)
         mo = RE_PROJECT_NUMBER.search(sheet[row, projectnum_col].value)
         if mo:  # there is valid project number in the cell
-            _cleanup(lo, doc)
+            doc.close()
             return mo.group()
     else:
-        _cleanup(lo)
         raise FileNotFoundError(f"file not found: {sht}")
-
-
-def _cleanup(lo:subprocess.Popen, doc:pyoo.SpreadsheetDocument=None):
-    """Close the LibreOffice session."""
-    if doc:
-        doc.close()
-    lo.kill()
 
 
 def _find_next_empty_cell(sheet:pyoo.Sheet, row:int, col:int) -> tuple:
